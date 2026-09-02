@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت | سوپرایز رها و ابوالفضل</title>
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        :root{--bg:#0a0a1a;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.1);--p:#b224ef;--s:#ff00cc;--danger:#f87171;--success:#4ade80}
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Vazirmatn',sans-serif;color:#fff}
+        body{background:linear-gradient(135deg,#0a0a1a,#1a0533,#0d0d2b);min-height:100vh;padding:20px}
+        .glass{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:25px;max-width:600px;margin:0 auto}
+        h1{font-size:1.4rem;background:linear-gradient(135deg,var(--p),var(--s));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:20px}
+        .form-group{margin-bottom:15px}
+        label{display:block;margin-bottom:6px;color:#bbb;font-size:.85rem}
+        input{width:100%;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:1rem}
+        .btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--p),var(--s));border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;color:#fff;margin-top:10px}
+        .btn-secondary{background:transparent;border:2px solid var(--s)}
+        .btn-danger{background:rgba(255,0,0,.2);border:1px solid rgba(255,0,0,.3);color:var(--danger);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.8rem;width:auto}
+        .upload-area{border:2px dashed var(--border);border-radius:15px;padding:25px;text-align:center;cursor:pointer;margin-bottom:15px}
+        .upload-area input{display:none}
+        .status{padding:12px;border-radius:10px;margin-top:12px;font-size:.9rem;display:none;text-align:center}
+        .status.show{display:block}
+        .status.error{background:rgba(255,0,0,.15);color:var(--danger)}
+        .status.success{background:rgba(0,255,100,.15);color:var(--success)}
+        .status.info{background:rgba(178,36,239,.15);color:#d8b4fe}
+        .music-item{padding:12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.03);border-radius:10px}
+        .play-btn{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--s));border:none;color:#fff;cursor:pointer;font-size:1.1rem}
+        .help{background:rgba(0,200,255,.1);border:1px solid rgba(0,200,255,.3);border-radius:10px;padding:12px;margin-bottom:20px;font-size:.85rem;line-height:1.8}
+        .help a{color:#00d4ff}
+        .hidden{display:none}
+    </style>
+</head>
+<body>
+
+<div class="glass" id="loginBox">
+    <h1>🔐 پنل مدیریت</h1>
+    <div class="form-group"><input type="password" id="passInput" placeholder="رمز عبور"></div>
+    <button class="btn" onclick="login()">ورود</button>
+</div>
+
+<div class="glass hidden" id="mainPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h1 style="margin:0;font-size:1.2rem">️ مدیریت موسیقی</h1>
+        <button class="btn-danger" onclick="logout()">خروج</button>
+    </div>
+
+    <div class="help">
+        <strong>روش ساده‌تر:</strong><br>
+        به جای Cloudinary، از <a href="https://catbox.moe" target="_blank">catbox.moe</a> استفاده کنید:<br>
+        ۱. فایل را در catbox آپلود کنید<br>
+        ۲. لینک را کپی کنید<br>
+        ۳. در قسمت پایین "افزودن با لینک مستقیم" وارد کنید
+    </div>
+
+    <h2 style="font-size:1rem;margin-bottom:12px;color:var(--s)">️ آپلود با Cloudinary</h2>
+    <div class="form-group"><label>Cloud Name</label><input type="text" id="cloudName" placeholder="dxxxxx"></div>
+    <div class="form-group"><label>Upload Preset</label><input type="text" id="uploadPreset" placeholder="my_preset"></div>
+    <button class="btn btn-secondary" onclick="saveCloud()">💾 ذخیره تنظیمات</button>
+
+    <div class="upload-area" onclick="document.getElementById('musicFile').click()">
+        <div style="font-size:2rem">🎵</div>
+        <p>انتخاب فایل</p>
+        <input type="file" id="musicFile" accept="audio/*">
+        <div id="fileInfo" style="margin-top:8px;font-size:.85rem;color:#888"></div>
+    </div>
+    <div class="form-group"><label>نام آهنگ</label><input type="text" id="songName" placeholder="نام آهنگ"></div>
+    <button class="btn" id="uploadBtn" onclick="upload()">آپلود آهنگ</button>
+    <div class="status" id="status"></div>
+
+    <h2 style="font-size:1rem;margin:20px 0 12px;color:var(--s)">🔗 یا افزودن با لینک مستقیم</h2>
+    <div class="form-group"><label>لینک مستقیم فایل MP3</label><input type="url" id="directUrl" placeholder="https://..."></div>
+    <div class="form-group"><label>نام آهنگ</label><input type="text" id="directName" placeholder="نام آهنگ"></div>
+    <button class="btn btn-secondary" onclick="addDirect()">➕ افزودن آهنگ</button>
+
+    <h2 style="font-size:1rem;margin:25px 0 12px">📋 آهنگ‌های موجود</h2>
+    <div id="adminList"></div>
+</div>
+
+<script>
+const ADMIN_PASS = "shayan001";
+const DEFAULT_SONGS = [
+    {name:"آهنگ تولد شاد", url:"https://www.soundhelix.com/data/mp3/SoundHelix-Song-1.mp3", id:"1"},
+    {name:"موسیقی احساسی", url:"https://www.soundhelix.com/data/mp3/SoundHelix-Song-2.mp3", id:"2"}
+];
+
+function getSongs(){return JSON.parse(localStorage.getItem('rahaSongs'))||DEFAULT_SONGS;}
+function saveSongs(s){localStorage.setItem('rahaSongs',JSON.stringify(s));renderList();}
+function getCloud(){return JSON.parse(localStorage.getItem('cloudSettings'))||{};}
+
+function showStatus(msg,type){
+    const s=document.getElementById('status');
+    s.textContent=msg;
+    s.className='status show '+type;
+    setTimeout(()=>s.classList.remove('show'),5000);
+}
+
+function login(){
+    if(document.getElementById('passInput').value===ADMIN_PASS){
+        sessionStorage.setItem('isAdmin','true');
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('mainPanel').classList.remove('hidden');
+        loadCloud();renderList();
+    }else alert('رمز اشتباه!');
+}
+function logout(){sessionStorage.removeItem('isAdmin');location.reload();}
+
+if(sessionStorage.getItem('isAdmin')==='true'){
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('mainPanel').classList.remove('hidden');
+    loadCloud();renderList();
+}
+
+function saveCloud(){
+    const cn=document.getElementById('cloudName').value.trim();
+    const up=document.getElementById('uploadPreset').value.trim();
+    if(!cn||!up) return alert('هر دو فیلد را پر کنید');
+    localStorage.setItem('cloudSettings',JSON.stringify({cloudName:cn,uploadPreset:up}));
+    alert('✅ تنظیمات ذخیره شد');
+}
+function loadCloud(){
+    const s=getCloud();
+    if(s.cloudName) document.getElementById('cloudName').value=s.cloudName;
+    if(s.uploadPreset) document.getElementById('uploadPreset').value=s.uploadPreset;
+}
+
+document.getElementById('musicFile').addEventListener('change',function(){
+    if(this.files[0]){
+        document.getElementById('fileInfo').textContent=this.files[0].name+' ('+(this.files[0].size/1024/1024).toFixed(2)+' MB)';
+    }
+});
+
+async function upload(){
+    const name=document.getElementById('songName').value.trim();
+    const file=document.getElementById('musicFile').files[0];
+    const settings=getCloud();
+    
+    if(!settings.cloudName||!settings.uploadPreset){
+        showStatus('❌ ابتدا تنظیمات Cloudinary را ذخیره کنید','error');
+        return;
+    }
+    if(!file){showStatus('❌ فایل انتخاب کنید','error');return;}
+    if(!name){showStatus('❌ نام آهنگ را وارد کنید','error');return;}
+    
+    showStatus('⏳ در حال آپلود...','info');
+    document.getElementById('uploadBtn').disabled=true;
+    
+    try{
+        const fd=new FormData();
+        fd.append('file',file);
+        fd.append('upload_preset',settings.uploadPreset);
+        
+        const res=await fetch(`https://api.cloudinary.com/v1_1/${settings.cloudName}/auto/upload`,{
+            method:'POST',
+            body:fd
+        });
+        const data=await res.json();
+        
+        if(data.secure_url){
+            const songs=getSongs();
+            songs.push({name,url:data.secure_url,id:Date.now().toString()});
+            saveSongs(songs);
+            showStatus('✅ آهنگ با موفقیت آپلود شد!','success');
+            document.getElementById('songName').value='';
+            document.getElementById('musicFile').value='';
+            document.getElementById('fileInfo').textContent='';
+        }else{
+            throw new Error(data.error?.message||'خطای ناشناخته');
+        }
+    }catch(err){
+        showStatus('❌ خطا: '+err.message+'\n\n💡 پیشنهاد: از روش "لینک مستقیم" استفاده کنید','error');
+    }
+    document.getElementById('uploadBtn').disabled=false;
+}
+
+function addDirect(){
+    const url=document.getElementById('directUrl').value.trim();
+    const name=document.getElementById('directName').value.trim();
+    
+    if(!url||!name){showStatus('❌ لینک و نام را وارد کنید','error');return;}
+    if(!url.match(/^https?:\/\//)){showStatus(' لینک باید با http:// یا https:// شروع شود','error');return;}
+    
+    const songs=getSongs();
+    songs.push({name,url,id:Date.now().toString()});
+    saveSongs(songs);
+    showStatus('✅ آهنگ اضافه شد!','success');
+    document.getElementById('directUrl').value='';
+    document.getElementById('directName').value='';
+}
+
+let audio=null,playing=null;
+function renderList(){
+    const songs=getSongs();
+    const list=document.getElementById('adminList');
+    list.innerHTML='';
+    songs.forEach(song=>{
+        const div=document.createElement('div');
+        div.className='music-item';
+        div.innerHTML=`
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${song.name}</span>
+            <button class="play-btn" onclick="togglePlay('${song.url}',this)">▶</button>
+            <button class="btn-danger" onclick="del('${song.id}')" style="margin-right:8px">🗑</button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function togglePlay(url,btn){
+    if(playing===btn){audio.pause();btn.textContent='▶';audio=null;playing=null;return;}
+    if(audio){audio.pause();playing.textContent='▶';}
+    audio=new Audio(url);audio.play();btn.textContent='⏸';playing=btn;
+    audio.onended=()=>{btn.textContent='▶';audio=null;playing=null;};
+}
+
+function del(id){
+    if(!confirm('حذف شود؟'))return;
+    saveSongs(getSongs().filter(s=>s.id!==id));
+}
+</script>
+</body>
+</html>
